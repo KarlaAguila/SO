@@ -1,8 +1,0 @@
-/n/n		----Se inicio el chat-----
-
-
- Otro usuario (20:54)Hola
- yo (20:54) -> HOla
- Otro usuario (20:54)Adios
- yo (20:54) -> Adios
- Otro usuario (20:54)adios

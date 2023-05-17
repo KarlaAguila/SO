@@ -7,8 +7,9 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <unistd.h>
+#include <ncurses.h>
 
-void main(void){
+int main(void) {
     char cadena[100];
     int listen_fd, comm_fd;
     struct sockaddr_in servaddr;
@@ -18,7 +19,11 @@ void main(void){
     char hora[100];
     char *tmp;
     char sendline[100] = "Usando el puerto 2200 \n";
-    
+
+    initscr(); // Inicializar la pantalla de ncurses
+    clear(); // Limpiar la pantalla
+    noecho(); // No mostrar las teclas pulsadas en la pantalla
+
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     bzero(&servaddr, sizeof(servaddr));
 
@@ -30,10 +35,12 @@ void main(void){
     listen(listen_fd, 10);
     comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
-    printf("/n/n\t\t----Se inicio el chat-----\n\n");
-    fputs("/n/n\t\t----Se inicio el chat-----\n\n", myf);
+    printw("\n\n\t\t----Se inicio el chat-----\n\n");
+    fprintf(myf, "\n\n\t\t----Se inicio el chat-----\n\n");
 
-    while(!strstr(cadena, "adios") && !strstr(sendline, "adios")){
+    refresh(); // Actualizar la pantalla
+
+    while(!strstr(cadena, "adios") && !strstr(sendline, "adios")) {
         bzero(cadena, 100);
         t = time(NULL);
         tm = localtime(&t);
@@ -41,19 +48,33 @@ void main(void){
 
         read(comm_fd, cadena, 100);
         tmp = strcat(hora, cadena);
-        printf("%s", tmp);
-        fputs(tmp, myf);
-        if(!strstr(cadena, "adios")){
+        printw("%s", tmp);
+        fprintf(myf, "%s", tmp);
+        refresh();
+
+        if(!strstr(cadena, "adios")) {
             strftime(hora, 100, "\n yo (%H:%M) -> ", tm);
-            printf("%s", hora);
-            gets(sendline);
+            printw("%s", hora);
+            refresh();
+
+            echo(); // Mostrar las teclas pulsadas en la pantalla
+            getstr(sendline);
+            noecho(); // No mostrar las teclas pulsadas en la pantalla nuevamente
+
             tmp = strcat(hora, sendline);
-            write(comm_fd, sendline, strlen(sendline)+1);
-            fputs(tmp, myf);
+            write(comm_fd, sendline, strlen(sendline) + 1);
+            fprintf(myf, "%s", tmp);
+            refresh();
         }
     }
-
-    printf("\n\n Conversacion FInalizada \n");
-    printf("\n Se genero el archivo -> conversacion_servidor.txt");
+    printw("\n\n Conversacion Finalizada \n");
+    printw("\n Se genero el archivo -> conversacion_servidor.txt");
+    fprintf(myf, "\n\n Conversacion Finalizada \n");
     fclose(myf);
+
+    refresh();
+    getch(); // Esperar a que el usuario presione una tecla para salir
+    endwin(); // Finalizar el modo ncurses
+
+    return 0;
 }
